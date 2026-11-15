@@ -290,8 +290,11 @@ void standard_pcl_cbk(const sensor_msgs::msg::PointCloud2::UniquePtr msg)
     double preprocess_start_time = omp_get_wtime();
     if (!is_first_lidar && cur_time < last_timestamp_lidar)
     {
-        std::cerr << "lidar loop back, clear buffer" << std::endl;
+        std::cerr << "LiDAR timestamp moved backward by " << (last_timestamp_lidar - cur_time)
+                  << " s; clear LiDAR and time buffers" << std::endl;
         lidar_buffer.clear();
+        time_buffer.clear();
+        lidar_pushed = false;
     }
     if (is_first_lidar)
     {
@@ -319,8 +322,11 @@ void livox_pcl_cbk(const livox_ros_driver2::msg::CustomMsg::UniquePtr msg)
     scan_count ++;
     if (!is_first_lidar && cur_time < last_timestamp_lidar)
     {
-        std::cerr << "lidar loop back, clear buffer" << std::endl;
+        std::cerr << "LiDAR timestamp moved backward by " << (last_timestamp_lidar - cur_time)
+                  << " s; clear LiDAR and time buffers" << std::endl;
         lidar_buffer.clear();
+        time_buffer.clear();
+        lidar_pushed = false;
     }
     if(is_first_lidar)
     {
@@ -371,7 +377,8 @@ void imu_cbk(const sensor_msgs::msg::Imu::UniquePtr msg_in)
 
     if (timestamp < last_timestamp_imu)
     {
-        std::cerr << "lidar loop back, clear buffer" << std::endl;
+        std::cerr << "IMU timestamp moved backward by " << (last_timestamp_imu - timestamp)
+                  << " s; clear IMU buffer" << std::endl;
         imu_buffer.clear();
     }
 
@@ -939,7 +946,7 @@ public:
         pubLaserCloudFull_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered", 20);
         pubLaserCloudFull_body_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_registered_body", 20);
         pubLaserCloudEffect_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud_effected", 20);
-        pubLaserCloudMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/Laser_map", 20);
+        pubLaserCloudMap_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/Laser_map", 1);
         pubOdomAftMapped_ = this->create_publisher<nav_msgs::msg::Odometry>("/Odometry", 20);
         pubPath_ = this->create_publisher<nav_msgs::msg::Path>("/path", 20);
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);

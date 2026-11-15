@@ -23,7 +23,8 @@
 
 /// *************Preconfiguration
 
-#define MAX_INI_COUNT (10)
+// Gravity and gyro bias from 1000 samples standing still, not 10 (a few ms).
+#define MAX_INI_COUNT (1000)
 
 const bool time_list(PointType &x, PointType &y) {return (x.curvature < y.curvature);};
 
